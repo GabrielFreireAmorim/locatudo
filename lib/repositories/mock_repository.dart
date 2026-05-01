@@ -97,11 +97,12 @@ class RentalRepository {
   Future<List<RentalModel>> getUserRentals(String userId) async {
     await Future.delayed(const Duration(milliseconds: 900));
     final List<dynamic> data = jsonDecode(MockDatabase.rentalsJson);
-    
+
     // Filtramos localmente para simular query do banco
     return data
         .map((json) => RentalModel.fromJson(json))
-        .where((rental) => rental.tenantId == userId || rental.landlordId == userId)
+        .where((rental) =>
+            rental.tenantId == userId || rental.landlordId == userId)
         .toList();
   }
 

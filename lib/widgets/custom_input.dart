@@ -29,6 +29,7 @@ class CustomInput extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final Widget? suffixIcon;
   final bool isOutline;
+  final bool enabled;
 
   const CustomInput({
     super.key,
@@ -42,6 +43,7 @@ class CustomInput extends StatelessWidget {
     this.onChanged,
     this.suffixIcon,
     this.isOutline = false,
+    this.enabled = true,
   });
 
   @override
@@ -62,6 +64,7 @@ class CustomInput extends StatelessWidget {
 
     return TextFormField(
       controller: controller,
+      enabled: enabled,
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
