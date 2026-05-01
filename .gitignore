@@ -1,0 +1,126 @@
+# =============================================================================
+# SEGREDOS E CREDENCIAIS — NUNCA COMMITAR
+# =============================================================================
+.env
+.env.*
+!.env.example
+
+# Chaves de assinatura Android
+*.keystore
+*.jks
+*.p12
+
+# Google Services (contém SHA-1 e client_ids do projeto)
+google-services.json
+GoogleService-Info.plist
+
+# Supabase / Firebase configs locais
+**/supabase/.temp/
+
+# =============================================================================
+# FLUTTER / DART / PUB
+# =============================================================================
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# =============================================================================
+# ANDROID
+# =============================================================================
+**/android/**/gradle-wrapper.jar
+**/android/.gradle
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# =============================================================================
+# iOS / macOS
+# =============================================================================
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/ephemeral/
+
+# =============================================================================
+# IDEs E EDITORES
+# =============================================================================
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (descomente se preferir não versionar as configs locais)
+# .vscode/
+
+# Xcode
+*.xcworkspace
+!default.xcworkspace
+
+# =============================================================================
+# SISTEMA OPERACIONAL
+# =============================================================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.class
+*.log
+*.pyc
+.atom/
+.history
+.svn/
+.swiftpm/
+
+# =============================================================================
+# OBFUSCAÇÃO / SIMBOLIZAÇÃO
+# =============================================================================
+app.*.symbols
+app.*.map.json
+
+# =============================================================================
+# MISC
+# =============================================================================
+.buildlog/
+migrate_working_dir/
