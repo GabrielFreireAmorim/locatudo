@@ -13,8 +13,11 @@ import 'screens/user_register_screen.dart';
 import 'services/supabase_service.dart';
 import 'screens/signup_screen.dart';
 import 'screens/terms_page.dart';
+import 'screens/legal_screen.dart';
+import 'screens/privacy_policy_page.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
+// ... (omitting middle part of imports if not needed, but replace_file_content needs context)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +57,9 @@ class LocaTudoApp extends StatelessWidget {
         '/user_profile': (context) => const UserScreen(),
         '/user_register': (context) => const UserRegisterScreen(),
         '/terms': (context) => const TermsPage(),
+        '/legal': (context) => const LegalScreen(),
+        '/legal_terms': (context) => const TermsPage(isReadOnly: true),
+        '/legal_privacy': (context) => const PrivacyPolicyPage(),
       },
     );
   }

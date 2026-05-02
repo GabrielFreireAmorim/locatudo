@@ -151,7 +151,9 @@ class _UserScreenState extends State<UserScreen> {
                   _buildOption(
                       Icons.settings_outlined, 'Configurações da conta', () {}),
                   _buildOption(Icons.help_outline, 'Obter ajuda', () {}),
-                  _buildOption(Icons.lock_outline, 'Privacidade', () {}),
+                  _buildOption(Icons.gavel_outlined, 'JURÍDICO', () {
+                    Navigator.pushNamed(context, '/legal');
+                  }),
                   _buildOption(Icons.logout, 'Sair da conta', () {
                     Navigator.pushReplacementNamed(context, '/login');
                   }),

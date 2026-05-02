@@ -12,7 +12,8 @@ import '../services/consent_service.dart';
 /// - Após o aceite, o usuário é redirecionado para `/product_list`.
 /// - Não há botão de "Voltar" — o usuário é obrigado a aceitar ou sair do app.
 class TermsPage extends StatefulWidget {
-  const TermsPage({super.key});
+  final bool isReadOnly;
+  const TermsPage({super.key, this.isReadOnly = false});
 
   @override
   State<TermsPage> createState() => _TermsPageState();
@@ -22,12 +23,13 @@ class _TermsPageState extends State<TermsPage> {
   final ScrollController _scrollController = ScrollController();
   final ConsentService _consentService = ConsentService();
 
-  bool _hasReachedEnd = false;
+  late bool _hasReachedEnd;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _hasReachedEnd = widget.isReadOnly; // Se for readOnly, já libera o estado
     _scrollController.addListener(_onScroll);
   }
 
@@ -92,8 +94,8 @@ class _TermsPageState extends State<TermsPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // Impede o gesto/botão de voltar — o usuário é obrigado a aceitar.
-      canPop: false,
+      // Impede o gesto/botão de voltar APENAS se não for readOnly
+      canPop: widget.isReadOnly,
       child: Scaffold(
         backgroundColor: AppTheme.primaryWhite,
         appBar: AppBar(
@@ -101,7 +103,7 @@ class _TermsPageState extends State<TermsPage> {
             'Termos de Uso',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          automaticallyImplyLeading: false, // Remove seta de voltar
+          automaticallyImplyLeading: widget.isReadOnly, // Mostra seta se for readOnly
           backgroundColor: AppTheme.primaryWhite,
           elevation: 0,
           bottom: PreferredSize(
@@ -112,7 +114,7 @@ class _TermsPageState extends State<TermsPage> {
         body: Column(
           children: [
             // ---- Cabeçalho informativo ----
-            _buildHeader(),
+            if (!widget.isReadOnly) _buildHeader(),
 
             // ---- Texto dos Termos (scrollável) ----
             Expanded(
@@ -120,17 +122,17 @@ class _TermsPageState extends State<TermsPage> {
                 children: [
                   SingleChildScrollView(
                     controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, widget.isReadOnly ? 40 : 100),
                     child: _buildTermsContent(),
                   ),
                   // Gradiente de fade no fundo para indicar mais conteúdo
-                  if (!_hasReachedEnd) _buildScrollFadeHint(),
+                  if (!_hasReachedEnd && !widget.isReadOnly) _buildScrollFadeHint(),
                 ],
               ),
             ),
 
             // ---- Rodapé com botão de aceite ----
-            _buildFooter(),
+            if (!widget.isReadOnly) _buildFooter(),
           ],
         ),
       ),
