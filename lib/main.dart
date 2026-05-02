@@ -12,6 +12,7 @@ import 'screens/user_screen.dart';
 import 'screens/user_register_screen.dart';
 import 'services/supabase_service.dart';
 import 'screens/signup_screen.dart';
+import 'screens/terms_page.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -52,6 +53,7 @@ class LocaTudoApp extends StatelessWidget {
         '/tenant_rentings': (context) => const trs.TenantRentingsScreen(),
         '/user_profile': (context) => const UserScreen(),
         '/user_register': (context) => const UserRegisterScreen(),
+        '/terms': (context) => const TermsPage(),
       },
     );
   }

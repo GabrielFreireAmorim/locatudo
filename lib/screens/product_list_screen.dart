@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../widgets/product_card.dart';
+import '../services/supabase_service.dart';
 
 // ---------------------------------------------------------------------------
 // Modelos de dado simples (mover para models/ quando integrar backend)
@@ -72,6 +73,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
   int _selectedCategoryIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  String? _avatarUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvatar();
+  }
+
+  Future<void> _loadAvatar() async {
+    try {
+      final user = SupabaseService.client.auth.currentUser;
+      if (user == null) return;
+
+      final data = await SupabaseService.client
+          .from('users')
+          .select('profile_image_url')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (data != null && mounted) {
+        setState(() => _avatarUrl = data['profile_image_url'] as String?);
+      }
+    } catch (_) {
+      // Falha silenciosa — mantém ícone padrão
+    }
+  }
 
   @override
   void dispose() {
@@ -221,11 +248,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/user_profile'),
-            child: const CircleAvatar(
+            onTap: () async {
+              await Navigator.pushNamed(context, '/user_profile');
+              // Recarrega avatar ao voltar do perfil
+              _loadAvatar();
+            },
+            child: CircleAvatar(
               radius: 18,
               backgroundColor: AppTheme.borderGrey,
-              child: Icon(Icons.person, color: AppTheme.textGrey, size: 22),
+              backgroundImage:
+                  _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
+              child: _avatarUrl == null
+                  ? const Icon(Icons.person,
+                      color: AppTheme.textGrey, size: 22)
+                  : null,
             ),
           ),
         ),

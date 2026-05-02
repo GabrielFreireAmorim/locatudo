@@ -3,6 +3,7 @@ import '../app_theme.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_input.dart';
 import '../services/auth_service.dart';
+import '../services/consent_service.dart';
 import '../widgets/google_sign_in_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  final _consentService = ConsentService();
   bool _isLoading = false;
 
   @override
@@ -41,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.signIn(email: email, password: password);
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/product_list');
+        await _redirectAfterLogin();
       }
     } catch (e) {
       if (mounted) {
@@ -54,12 +56,24 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Redireciona para /terms se o usuário não aceitou os termos;
+  /// caso contrário vai direto para /product_list.
+  Future<void> _redirectAfterLogin() async {
+    final accepted = await _consentService.hasAcceptedCurrentTerms();
+    if (!mounted) return;
+    if (accepted) {
+      Navigator.pushReplacementNamed(context, '/product_list');
+    } else {
+      Navigator.pushReplacementNamed(context, '/terms');
+    }
+  }
+
   Future<void> _handleGoogleLogin() async {
     setState(() => _isLoading = true);
     try {
       await _authService.signInWithGoogle();
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/product_list');
+        await _redirectAfterLogin();
       }
     } catch (e) {
       if (mounted) {

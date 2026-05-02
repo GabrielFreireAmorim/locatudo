@@ -4,6 +4,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/google_sign_in_button.dart';
 import '../services/auth_service.dart';
 import '../repositories/supabase_repository.dart';
+import '../services/consent_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _authService = AuthService();
   final _userRepository = SupabaseUserRepository();
+  final _consentService = ConsentService();
   bool _isLoading = false;
 
   Future<void> _handleGoogleLogin() async {
@@ -29,6 +31,14 @@ class _HomeScreenState extends State<HomeScreen> {
         
         if (!mounted) return;
         
+        final acceptedTerms = await _consentService.hasAcceptedCurrentTerms();
+        if (!mounted) return;
+
+        if (!acceptedTerms) {
+          Navigator.pushReplacementNamed(context, '/terms');
+          return;
+        }
+
         // Se o usuário não existe na tabela pública ou se faltam dados (ex: address), 
         // manda para a tela de completar o cadastro. 
         // Obs: assumindo que um usuário "completo" tenha endereço ou telefone preenchido

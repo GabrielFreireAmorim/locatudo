@@ -1,11 +1,5 @@
 ---
 description: >
-  slug: feature
-  description: >
-    Orquestra a equipe autônoma para desenvolver uma funcionalidade completa
-    no LocaTudo — da spec ao código auditado. Cada agente usa suas skills
-    e aguarda aprovação antes de avançar.
-  usage: /feature <sua ideia de funcionalidade>
 ---
 
 # 🚀 Workflow: `/feature`
@@ -119,6 +113,8 @@ Se encontrar problemas, listar cada um com:
    - Ex: rodar o SQL no Supabase Dashboard.
    - Ex: adicionar variáveis de ambiente.
 3. Apresentar o **resumo final** da feature entregue.
+4. Resumir o ajuste para o commit separando por novo recurso, correção, exclusão, banco, etc.. 
+  -EX: [FEAT] - Nova feature de aceite de termos da plataforma
 
 ---
 
