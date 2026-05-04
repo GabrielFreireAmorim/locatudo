@@ -203,6 +203,10 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
         'email': user.email,
         'cpf': cpf,
         'address': fullAddress,
+        'address_cep': cep,
+        'address_street': street,
+        'address_number': number,
+        'address_complement': complement,
         if (avatarUrl != null) 'profile_image_url': avatarUrl,
         'updated_at': DateTime.now().toIso8601String(),
       });

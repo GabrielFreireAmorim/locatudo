@@ -30,6 +30,7 @@ class CustomInput extends StatelessWidget {
   final Widget? suffixIcon;
   final bool isOutline;
   final bool enabled;
+  final int? maxLines;
 
   const CustomInput({
     super.key,
@@ -44,6 +45,7 @@ class CustomInput extends StatelessWidget {
     this.suffixIcon,
     this.isOutline = false,
     this.enabled = true,
+    this.maxLines = 1,
   });
 
   @override
@@ -67,6 +69,7 @@ class CustomInput extends StatelessWidget {
       enabled: enabled,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      maxLines: maxLines,
       validator: validator,
       inputFormatters: inputFormatters,
       onChanged: onChanged,

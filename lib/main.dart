@@ -10,6 +10,7 @@ import 'screens/tenant_rentings_screen.dart' as trs;
 import 'screens/landlord_rentings_screen.dart' as lrs;
 import 'screens/user_screen.dart';
 import 'screens/user_register_screen.dart';
+import 'screens/locador_register_screen.dart';
 import 'services/supabase_service.dart';
 import 'screens/signup_screen.dart';
 import 'screens/terms_page.dart';
@@ -56,6 +57,7 @@ class LocaTudoApp extends StatelessWidget {
         '/tenant_rentings': (context) => const trs.TenantRentingsScreen(),
         '/user_profile': (context) => const UserScreen(),
         '/user_register': (context) => const UserRegisterScreen(),
+        '/locador_register': (context) => const LocadorRegisterScreen(),
         '/terms': (context) => const TermsPage(),
         '/legal': (context) => const LegalScreen(),
         '/legal_terms': (context) => const TermsPage(isReadOnly: true),

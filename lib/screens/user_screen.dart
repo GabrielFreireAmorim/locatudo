@@ -19,6 +19,7 @@ class _UserScreenState extends State<UserScreen> {
   String _address = '';
   String? _avatarUrl;
   String _appVersion = '';
+  String _locadorStatus = 'inactive';
 
   @override
   void initState() {
@@ -47,7 +48,7 @@ class _UserScreenState extends State<UserScreen> {
 
       final data = await SupabaseService.client
           .from('users')
-          .select('name, address, profile_image_url')
+          .select('name, address, profile_image_url, locador_status')
           .eq('id', user.id)
           .maybeSingle();
 
@@ -57,12 +58,55 @@ class _UserScreenState extends State<UserScreen> {
         _name = data['name'] ?? '';
         _address = data['address'] ?? '';
         _avatarUrl = data['profile_image_url'] as String?;
+        _locadorStatus = data['locador_status'] ?? 'inactive';
       });
     } catch (_) {
-      // Falha silenciosa — dados ficam em branco
+      // Falha silenciosa
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Widget _buildLocadorStatus() {
+    String text = '';
+    Color color = AppTheme.primaryBlack;
+    IconData icon = Icons.storefront;
+
+    if (_locadorStatus == 'pending') {
+      text = 'Locador: Em Análise';
+      color = Colors.orange;
+      icon = Icons.hourglass_empty;
+    } else if (_locadorStatus == 'approved') {
+      text = 'Painel do Locador';
+      color = Colors.green;
+      icon = Icons.store_mall_directory;
+    } else if (_locadorStatus == 'rejected') {
+      text = 'Locador: Rejeitado (Tentar Novamente)';
+      color = Colors.red;
+    } else {
+      text = 'Tornar-se Locador';
+    }
+
+    return _buildOption(icon, text, () async {
+      if (_locadorStatus == 'pending') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sua solicitação está em análise.')),
+        );
+        return;
+      }
+      
+      if (_locadorStatus == 'approved') {
+        // TODO: Navigate to Locador Dashboard when created
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Painel do Locador em breve.')),
+        );
+        return;
+      }
+
+      await Navigator.pushNamed(context, '/locador_register');
+      setState(() => _isLoading = true);
+      _loadProfile();
+    }, color: color);
   }
 
   @override
@@ -102,7 +146,6 @@ class _UserScreenState extends State<UserScreen> {
                     ),
                     child: Column(
                       children: [
-                        // Foto real ou placeholder
                         CircleAvatar(
                           radius: 40,
                           backgroundColor: AppTheme.borderGrey,
@@ -116,7 +159,6 @@ class _UserScreenState extends State<UserScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // Nome real
                         Text(
                           _name.isNotEmpty ? _name : 'Sem nome cadastrado',
                           style: const TextStyle(
@@ -126,7 +168,6 @@ class _UserScreenState extends State<UserScreen> {
                           ),
                         ),
 
-                        // Endereço real (só exibe se preenchido)
                         if (_address.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
@@ -146,12 +187,10 @@ class _UserScreenState extends State<UserScreen> {
                   // Lista de Opções
                   _buildOption(Icons.person_outline, 'Editar perfil', () async {
                     await Navigator.pushNamed(context, '/user_register');
-                    // Recarrega ao voltar da edição
                     setState(() => _isLoading = true);
                     _loadProfile();
                   }),
-                  _buildOption(
-                      Icons.settings_outlined, 'Configurações da conta', () {}),
+                  _buildLocadorStatus(),
                   _buildOption(Icons.help_outline, 'Obter ajuda', () {}),
                   _buildOption(Icons.gavel_outlined, 'JURÍDICO', () {
                     Navigator.pushNamed(context, '/legal');
@@ -184,19 +223,20 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  Widget _buildOption(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildOption(IconData icon, String title, VoidCallback onTap, {Color color = AppTheme.primaryBlack}) {
     return ListTile(
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: AppTheme.primaryBlack),
+      leading: Icon(icon, color: color),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: AppTheme.primaryBlack,
+          color: color,
         ),
       ),
     );
   }
 }
+
