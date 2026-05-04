@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../app_theme.dart';
+import '../services/consent_service.dart';
+import '../repositories/supabase_repository.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,6 +12,9 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final _consentService = ConsentService();
+  final _userRepository = SupabaseUserRepository();
+
   @override
   void initState() {
     super.initState();
@@ -16,12 +22,38 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _startAnimation() async {
-    // Exibe a splash por 3 segundos e navega com fade
+    // Exibe a splash por 3 segundos
     await Future.delayed(const Duration(seconds: 3));
+    
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      final session = Supabase.instance.client.auth.currentSession;
+      
+      if (session != null) {
+        // Se houver sessão, verifica termos e perfil
+        final acceptedTerms = await _consentService.hasAcceptedCurrentTerms();
+        if (!mounted) return;
+
+        if (!acceptedTerms) {
+          Navigator.of(context).pushReplacementNamed('/terms');
+          return;
+        }
+
+        final userModel = await _userRepository.getUser(session.user.id);
+        if (!mounted) return;
+
+        // Se o perfil estiver incompleto, manda para registro de usuário
+        if (userModel == null || userModel.address == null || userModel.address!.isEmpty) {
+          Navigator.of(context).pushReplacementNamed('/user_register');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/product_list');
+        }
+      } else {
+        // Se não houver sessão, vai para a home
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

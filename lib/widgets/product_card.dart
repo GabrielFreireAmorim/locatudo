@@ -11,14 +11,16 @@ import '../app_theme.dart';
 /// - [onTap]       : Callback ao pressionar o card (navega para ProductDetail).
 class ProductCard extends StatelessWidget {
   final String title;
-  final double pricePerDay;
+  final double price;
+  final String pricingType; // 'DAILY' ou 'HOURLY'
   final String? imageUrl;
   final VoidCallback? onTap;
 
   const ProductCard({
     super.key,
     required this.title,
-    required this.pricePerDay,
+    required this.price,
+    required this.pricingType,
     this.imageUrl,
     this.onTap,
   });
@@ -86,7 +88,7 @@ class ProductCard extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: pricePerDay
+                              text: price
                                   .toStringAsFixed(2)
                                   .replaceAll('.', ','),
                               style: const TextStyle(
@@ -95,9 +97,9 @@ class ProductCard extends StatelessWidget {
                                 color: AppTheme.primaryBlack,
                               ),
                             ),
-                            const TextSpan(
-                              text: ' / dia',
-                              style: TextStyle(
+                            TextSpan(
+                              text: pricingType == 'DAILY' ? ' / dia' : ' / hora',
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.textGrey,
                               ),

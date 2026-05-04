@@ -2,65 +2,11 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../widgets/product_card.dart';
 import '../services/supabase_service.dart';
-
-// ---------------------------------------------------------------------------
-// Modelos de dado simples (mover para models/ quando integrar backend)
-// ---------------------------------------------------------------------------
-
-class _Category {
-  final String label;
-  final IconData icon;
-
-  const _Category({required this.label, required this.icon});
-}
-
-class _Product {
-  final String title;
-  final double pricePerDay;
-  final String? imageUrl;
-  final String category;
-
-  const _Product({
-    required this.title,
-    required this.pricePerDay,
-    required this.category,
-    this.imageUrl,
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Dados de exemplo
-// ---------------------------------------------------------------------------
-
-const List<_Category> _categories = [
-  _Category(label: 'Ferramentas', icon: Icons.construction),
-  _Category(label: 'Eletrônicos', icon: Icons.videogame_asset_outlined),
-  _Category(label: 'Festa', icon: Icons.celebration_outlined),
-  _Category(label: 'Veículos', icon: Icons.directions_car_outlined),
-  _Category(label: 'Casa', icon: Icons.house_outlined),
-];
-
-const List<_Product> _allProducts = [
-  _Product(title: 'Betoneira', pricePerDay: 80.00, category: 'Ferramentas'),
-  _Product(title: 'Carretinha', pricePerDay: 50.00, category: 'Veículos'),
-  _Product(
-      title: 'Martelo de Demolição',
-      pricePerDay: 35.00,
-      category: 'Ferramentas'),
-  _Product(
-      title: 'Pula Pula 2,3m infantil', pricePerDay: 85.00, category: 'Festa'),
-  _Product(title: 'Furadeira', pricePerDay: 25.00, category: 'Ferramentas'),
-  _Product(title: 'Mesa Plástica Branca', pricePerDay: 6.00, category: 'Festa'),
-  _Product(title: 'Cadeira Plástica', pricePerDay: 1.50, category: 'Festa'),
-  _Product(title: 'Smart TV 55"', pricePerDay: 120.00, category: 'Eletrônicos'),
-  _Product(
-      title: 'Projetor Epson', pricePerDay: 90.00, category: 'Eletrônicos'),
-  _Product(title: 'Lava Pressão', pricePerDay: 40.00, category: 'Casa'),
-];
-
-// ---------------------------------------------------------------------------
-// Tela Principal
-// ---------------------------------------------------------------------------
+import '../models/category_model.dart';
+import '../models/product_model.dart';
+import '../repositories/category_repository.dart';
+import '../repositories/product_repository.dart';
+import '../utils/category_icons.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -70,15 +16,25 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  int _selectedCategoryIndex = 0;
+  final _categoryRepo = CategoryRepository();
+  final _productRepo = ProductRepository();
+
+  List<CategoryModel> _categories = [];
+  List<ProductModel> _products = [];
+  
+  String? _selectedCategoryId;
+  
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  
   String? _avatarUrl;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadAvatar();
+    _loadData();
   }
 
   Future<void> _loadAvatar() async {
@@ -96,8 +52,78 @@ class _ProductListScreenState extends State<ProductListScreen> {
         setState(() => _avatarUrl = data['profile_image_url'] as String?);
       }
     } catch (_) {
-      // Falha silenciosa — mantém ícone padrão
+      // Falha silenciosa
     }
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      final categories = await _categoryRepo.getCategories();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          if (_categories.isNotEmpty) {
+            _selectedCategoryId = _categories.first.id;
+          }
+        });
+      }
+      // Após carregar categorias, carrega produtos da primeira
+      await _fetchProducts();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar dados: $e'), backgroundColor: AppTheme.statusRed),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _fetchProducts() async {
+    setState(() => _isLoading = true);
+    try {
+      final products = await _productRepo.getProducts(
+        categoryId: _selectedCategoryId,
+        searchQuery: _searchQuery,
+      );
+      if (mounted) {
+        setState(() {
+          _products = products;
+        });
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar produtos: $e'), backgroundColor: AppTheme.statusRed),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _onCategorySelected(String categoryId) {
+    setState(() {
+      _selectedCategoryId = categoryId;
+      _searchController.clear();
+      _searchQuery = '';
+    });
+    _fetchProducts();
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+    // Um debounce seria ideal aqui, mas para simplicidade faz a busca direta ou usa um botão.
+    // Vamos fazer a busca quando o usuário digitar.
+    _fetchProducts();
   }
 
   @override
@@ -106,28 +132,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
     super.dispose();
   }
 
-  // Filtra produtos pela categoria selecionada e pelo texto de busca
-  List<_Product> get _filteredProducts {
-    final selectedCategory = _categories[_selectedCategoryIndex].label;
-
-    return _allProducts.where((p) {
-      final matchesCategory =
-          selectedCategory == 'Ferramentas' && _selectedCategoryIndex == 0
-              ? true // "Todos" — exibe tudo por padrão no índice 0
-              : p.category == selectedCategory;
-
-      final matchesSearch = _searchQuery.isEmpty ||
-          p.title.toLowerCase().contains(_searchQuery.toLowerCase());
-
-      return matchesCategory && matchesSearch;
-    }).toList();
-  }
-
-  /// Calcula o número de colunas do grid conforme a largura da tela
   int _columnCount(double screenWidth) {
-    if (screenWidth >= 1024) return 4; // Tablet Landscape / Desktop
-    if (screenWidth >= 600) return 3; // Tablet Portrait
-    return 2; // Smartphone (mockup)
+    if (screenWidth >= 1024) return 4;
+    if (screenWidth >= 600) return 3;
+    return 2;
   }
 
   @override
@@ -141,26 +149,23 @@ class _ProductListScreenState extends State<ProductListScreen> {
       body: CustomScrollView(
         slivers: [
           // ── Categorias ──────────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: _CategoryBar(
-              categories: _categories,
-              selectedIndex: _selectedCategoryIndex,
-              onCategorySelected: (i) => setState(() {
-                _selectedCategoryIndex = i;
-                _searchController.clear();
-                _searchQuery = '';
-              }),
+          if (_categories.isNotEmpty)
+            SliverToBoxAdapter(
+              child: _CategoryBar(
+                categories: _categories,
+                selectedCategoryId: _selectedCategoryId,
+                onCategorySelected: _onCategorySelected,
+              ),
             ),
-          ),
 
           // ── Barra de Busca ──────────────────────────────────────────────
           SliverToBoxAdapter(
             child: _SearchBar(
               controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
+              onChanged: _onSearchChanged,
               onClear: () {
                 _searchController.clear();
-                setState(() => _searchQuery = '');
+                _onSearchChanged('');
               },
             ),
           ),
@@ -170,7 +175,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
               child: Text(
-                'Categorias',
+                'Produtos',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryBlack,
@@ -179,46 +184,50 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
 
-          // ── Grade de Produtos (SliverGrid) ──────────────────────────────
-          _filteredProducts.isEmpty
-              ? const SliverFillRemaining(child: _EmptyState())
-              : SliverPadding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  sliver: SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: columns,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      // Aspect ratio dinâmico conforme o número de colunas
-                      childAspectRatio: columns >= 3 ? 0.68 : 0.72,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final product = _filteredProducts[index];
-                        return ProductCard(
-                          title: product.title,
-                          pricePerDay: product.pricePerDay,
-                          imageUrl: product.imageUrl,
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/product_detail',
-                          ),
-                        );
-                      },
-                      childCount: _filteredProducts.length,
-                    ),
-                  ),
+          // ── Grade de Produtos ou Loading ──────────────────────────────
+          if (_isLoading && _products.isEmpty)
+             const SliverFillRemaining(
+               child: Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange)),
+             )
+          else if (_products.isEmpty)
+            const SliverFillRemaining(child: _EmptyState())
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              sliver: SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: columns >= 3 ? 0.68 : 0.72,
                 ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final product = _products[index];
+                    return ProductCard(
+                      title: product.title,
+                      price: product.price, 
+                      pricingType: product.pricingType,
+                      imageUrl: product.imageUrl,
+                      onTap: () {
+                         Navigator.pushNamed(context, '/product_detail', arguments: product);
+                      },
+                    );
+                  },
+                  childCount: _products.length,
+                ),
+              ),
+            ),
 
-          // Espaçamento inferior para evitar que o último item fique colado no FAB
           const SliverToBoxAdapter(child: SizedBox(height: 80)),
         ],
       ),
 
-      // Botão flutuante para cadastrar nova locação
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/product_register'),
+        onPressed: () => Navigator.pushNamed(context, '/product_register').then((_) {
+            // Recarrega a lista se voltar do cadastro
+            _fetchProducts();
+        }),
         backgroundColor: AppTheme.primaryOrange,
         foregroundColor: AppTheme.primaryWhite,
         child: const Icon(Icons.add, size: 28),
@@ -250,7 +259,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
           child: GestureDetector(
             onTap: () async {
               await Navigator.pushNamed(context, '/user_profile');
-              // Recarrega avatar ao voltar do perfil
               _loadAvatar();
             },
             child: CircleAvatar(
@@ -259,8 +267,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               backgroundImage:
                   _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
               child: _avatarUrl == null
-                  ? const Icon(Icons.person,
-                      color: AppTheme.textGrey, size: 22)
+                  ? const Icon(Icons.person, color: AppTheme.textGrey, size: 22)
                   : null,
             ),
           ),
@@ -275,13 +282,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
 // ---------------------------------------------------------------------------
 
 class _CategoryBar extends StatelessWidget {
-  final List<_Category> categories;
-  final int selectedIndex;
-  final ValueChanged<int> onCategorySelected;
+  final List<CategoryModel> categories;
+  final String? selectedCategoryId;
+  final ValueChanged<String> onCategorySelected;
 
   const _CategoryBar({
     required this.categories,
-    required this.selectedIndex,
+    required this.selectedCategoryId,
     required this.onCategorySelected,
   });
 
@@ -295,10 +302,10 @@ class _CategoryBar extends StatelessWidget {
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
-          final bool isSelected = index == selectedIndex;
+          final bool isSelected = category.id == selectedCategoryId;
 
           return GestureDetector(
-            onTap: () => onCategorySelected(index),
+            onTap: () => onCategorySelected(category.id),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 6),
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -316,14 +323,14 @@ class _CategoryBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    category.icon,
+                    CategoryIcons.getIconForSlug(category.slug),
                     size: 26,
                     color:
                         isSelected ? AppTheme.primaryOrange : AppTheme.textGrey,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    category.label,
+                    category.name,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight:
@@ -391,7 +398,7 @@ class _SearchBar extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Estado vazio (nenhum produto encontrado)
+// Estado vazio
 // ---------------------------------------------------------------------------
 
 class _EmptyState extends StatelessWidget {

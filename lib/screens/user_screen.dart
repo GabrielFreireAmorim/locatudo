@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../services/supabase_service.dart';
+import '../services/auth_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class UserScreen extends StatefulWidget {
@@ -11,6 +12,7 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
+  final _authService = AuthService();
   bool _isLoading = true;
 
   String _name = '';
@@ -154,8 +156,11 @@ class _UserScreenState extends State<UserScreen> {
                   _buildOption(Icons.gavel_outlined, 'JURÍDICO', () {
                     Navigator.pushNamed(context, '/legal');
                   }),
-                  _buildOption(Icons.logout, 'Sair da conta', () {
-                    Navigator.pushReplacementNamed(context, '/login');
+                  _buildOption(Icons.logout, 'Sair da conta', () async {
+                    await _authService.signOut();
+                    if (mounted) {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    }
                   }),
                   
                   const SizedBox(height: 40),
