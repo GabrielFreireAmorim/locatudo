@@ -200,6 +200,7 @@ class _LocadorRegisterScreenState extends State<LocadorRegisterScreen> {
         title: const Text('Dados'),
         content: Column(
           children: [
+            const SizedBox(height: 10),
             CustomInput(
               label: _personType == 'Física' ? 'Nome Completo' : 'Razão Social',
               controller: _nameController,
@@ -223,6 +224,7 @@ class _LocadorRegisterScreenState extends State<LocadorRegisterScreen> {
         title: const Text('Endereço'),
         content: Column(
           children: [
+            const SizedBox(height: 10),
             CustomInput(
               label: 'CEP',
               controller: _cepController,
@@ -247,6 +249,7 @@ class _LocadorRegisterScreenState extends State<LocadorRegisterScreen> {
         title: const Text('Contato'),
         content: Column(
           children: [
+            const SizedBox(height: 10),
             CustomInput(
               label: 'Telefone',
               controller: _phoneController,
@@ -286,6 +289,7 @@ class _LocadorRegisterScreenState extends State<LocadorRegisterScreen> {
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 10),
             CustomInput(
               label: 'Nome da Loja/Perfil',
               controller: _storeNameController,
@@ -375,7 +379,7 @@ class _LocadorRegisterScreenState extends State<LocadorRegisterScreen> {
               controlsBuilder: (context, details) {
                 final isLastStep = _currentStep == _getSteps().length - 1;
                 return Padding(
-                  padding: const EdgeInsets.only(top: 20),
+                  padding: const EdgeInsets.only(top: 20, bottom: 40),
                   child: Row(
                     children: [
                       Expanded(

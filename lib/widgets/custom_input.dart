@@ -64,7 +64,9 @@ class CustomInput extends StatelessWidget {
     final Color focusedBorderColor =
         isDark ? AppTheme.primaryWhite : AppTheme.primaryOrange;
 
-    return TextFormField(
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: TextFormField(
       controller: controller,
       enabled: enabled,
       obscureText: obscureText,
@@ -120,6 +122,7 @@ class CustomInput extends StatelessWidget {
             ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
             : const EdgeInsets.symmetric(vertical: 12),
       ),
-    );
-  }
+    ),
+  );
+}
 }

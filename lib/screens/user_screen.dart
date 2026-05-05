@@ -120,10 +120,12 @@ class _UserScreenState extends State<UserScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Perfil',
@@ -197,9 +199,8 @@ class _UserScreenState extends State<UserScreen> {
                   }),
                   _buildOption(Icons.logout, 'Sair da conta', () async {
                     await _authService.signOut();
-                    if (mounted) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    }
+                    if (!mounted) return;
+                    Navigator.pushReplacementNamed(context, '/home');
                   }),
                   
                   const SizedBox(height: 40),
@@ -220,6 +221,7 @@ class _UserScreenState extends State<UserScreen> {
                 ],
               ),
             ),
+          ),
     );
   }
 
